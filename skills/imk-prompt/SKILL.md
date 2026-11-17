@@ -1,7 +1,7 @@
 ---
 name: imk-prompt
 description: Rewrites a rough request into an optimized prompt for the AI model that will run it (Claude, or Codex/GPT through the Codex plugin), following that vendor's official prompting guidance, shows it for approval, then runs it. Use when the user invokes /imk-prompt or asks to "optimize this prompt" before executing it.
-argument-hint: "[--target claude|codex] [--run] <request>"
+argument-hint: "[--target codex] [--run] <request>"
 disable-model-invocation: true
 ---
 
@@ -11,8 +11,8 @@ Turn the user's rough request into a prompt tuned for the model that will execut
 and only then run it. Never run the original request before the user has seen the optimized one
 (unless `--run`).
 
-The **optimizer is always the current session model**, with the full conversation context. What
-changes with `--target` is who *executes* the prompt and whose guidance it follows.
+The **optimizer is always the current session model**, with the full conversation context.
+Without `--target`, the prompt is optimized for that same model and runs in this session.
 
 ## Arguments
 
@@ -20,26 +20,36 @@ Parse these from the start of the arguments; everything else is the **raw reques
 
 | Argument | Meaning | Default |
 |---|---|---|
-| `--target claude\|codex` | Who executes the prompt and which vendor guidance applies | the session's own vendor |
+| `--target codex` | Optimize for Codex and run it through the Codex plugin installed in Claude Code | off: optimize for the session model and run it here |
 | `--run` | Run the optimized prompt right away, no confirmation | off: show it and ask |
 
-- `claude`: optimize for the session model and run it in this session.
-- `codex`: optimize for Codex and, after approval, **delegate the execution to the Codex plugin**
-  (the other AI installed alongside), which runs its own default model.
+`--target` has **one value only: `codex`**, and exists only to use the Codex plugin from Claude
+Code. There is no `--target claude`: Claude is simply the default. If the user passes any other
+value, say that only `--target codex` exists and ask what they meant.
+
+`--target codex` **requires the Codex plugin installed in Claude Code** (`codex@openai-codex`,
+checked with `/codex:setup`). When set, after approval the execution is **delegated to that
+plugin**, which runs Codex with its own default model. In a Codex session, `--target codex`
+makes no sense (you already are Codex): ignore it and say so.
 
 ## Procedure
 
-1. **Detect the target.** Unless `--target` is given, use your own vendor: a Claude model →
-   `claude`; an OpenAI/GPT/Codex model → `codex`. Note the exact target model and version:
-   - `claude`: your own model and version (for example "Sonnet 5.5").
-   - `codex`: the model the Codex plugin will run. Read `model` and `model_reasoning_effort`
-     from `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`). If it cannot be read, write
+1. **Detect the target model.**
+   - **With `--target codex`** (from Claude Code): first check that the Codex plugin is
+     available (the `codex:codex-rescue` agent is listed). If it is not, stop and tell the user
+     to install it and run `/codex:setup`; do not optimize. Otherwise the target is the model
+     the plugin will run: read `model` and `model_reasoning_effort` from
+     `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`). If it cannot be read, write
      "modelo por defecto del plugin (no determinado)" and use the general guidance only.
+   - **Without `--target`**: the target is your own model and version (for example
+     "Sonnet 5.5"), and your own vendor decides the guidance: a Claude model → Claude guidance;
+     an OpenAI/GPT/Codex model → Codex guidance.
 
-   If you are not sure of the target, ask one short question. Copilot and others are not
-   supported yet: say so and fall back to the general principles in `references/claude.md`.
-2. **Load only that reference**: `references/claude.md` or `references/codex.md`, read with
-   the file tool relative to this skill's folder. Do not load the other one.
+   If you are not sure of your own model, say "versión no determinada". Copilot and others are
+   not supported yet: say so and fall back to the general principles in `references/claude.md`.
+2. **Load only the matching reference**: `references/codex.md` for Codex, otherwise
+   `references/claude.md`, read with the file tool relative to this skill's folder. Do not load
+   the other one.
 3. **Decide whether to optimize at all.** If the request is a one-line question, a greeting
    or a trivial command, say "no hace falta optimizarlo" in the user's language and just run
    it. Optimizing short requests adds friction, not quality.
@@ -47,16 +57,14 @@ Parse these from the start of the arguments; everything else is the **raw reques
    already have.
 5. **Present** the result (format below). Unless `--run`, stop and wait for approval or edits.
 6. **Run** the approved prompt:
-   - Target equal to your own vendor → run it in this session as if the user had typed it.
-   - Target `codex` while you are Claude → delegate with the Agent tool, `subagent_type:
-     "codex:codex-rescue"`. Pass the optimized prompt **verbatim** as the task. Do not add
-     `--model` or `--effort` (the plugin uses its defaults). If the task is read-only (review,
-     diagnosis, research), say so in the forwarded text, because the plugin writes by default.
-     When it returns, show Codex's output as it came and state that it was Codex. If the Codex
-     plugin is not installed or not ready, say so (`/codex:setup` checks it) and show the
-     prompt for the user to paste into Codex instead.
-   - Any other combination (for example you are Codex and the target is `claude`) → you cannot
-     delegate: show the prompt and say it is to be pasted into the target tool.
+   - No `--target` → run it in this session as if the user had typed it.
+   - `--target codex` → delegate with the Agent tool, `subagent_type: "codex:codex-rescue"`.
+     Pass the optimized prompt **verbatim** as the task. Do not add `--model` or `--effort`
+     (the plugin uses its defaults). If the task is read-only (review, diagnosis, research), say
+     so in the forwarded text, because the plugin writes by default. When it returns, show
+     Codex's output as it came and state that it was Codex. If the delegation fails because the
+     plugin is not ready, say so (`/codex:setup`) and show the prompt for the user to paste into
+     Codex instead.
 
 ## Optimization rules
 
@@ -84,7 +92,7 @@ Parse these from the start of the arguments; everything else is the **raw reques
 ```
 **Prompt optimizado**
 
-- Optimizado para: <vendor> · <exact model and version, e.g. "Claude Sonnet 5.5"> (<detectado | --target>)
+- Optimizado para: <vendor> · <exact model and version, e.g. "Claude Sonnet 5.5"> (<modelo de la sesión | --target codex>)
 - Lo ejecutará: <this session | Codex plugin · model and effort>
 - Optimizado por: <session model>
 - Guía aplicada: <reference file> (instantánea de <date in the file>)

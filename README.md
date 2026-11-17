@@ -22,6 +22,19 @@ Claude y Codex/GPT como destino; Copilot y otros quedan para más adelante.
 
 Comprueba que está cargada escribiendo `/imk-prompt`. Para actualizar: `/plugin update`.
 
+**Solo si vas a usar `--target codex`**: necesitas además el **plugin de Codex instalado en
+Claude Code** (y Codex con sesión iniciada en tu máquina). Sin él, `--target codex` no funciona.
+
+```
+/plugin marketplace add openai/codex-plugin-cc
+/plugin install codex@openai-codex
+/reload-plugins
+/codex:setup
+```
+
+`/codex:setup` comprueba que Codex está listo. Sin `--target`, la skill no necesita el plugin
+de Codex.
+
 Desde una copia local del repo (para probar cambios), cambia la primera línea por la ruta de la
 carpeta, por ejemplo `/plugin marketplace add S:\proyectos\imk-dev-toolkit\imk-ia-prompt-optimizer-skill`,
 o abre Claude Code con `claude --plugin-dir <ruta-del-repo>`.
@@ -50,7 +63,8 @@ actualizar: `git pull` y vuelve a copiar la carpeta (en Linux/macOS puedes usar 
 simbólico en lugar de copiar).
 
 > La instalación en Codex sigue su documentación oficial para skills; la ruta en Windows no
-> aparece en ella y conviene comprobarla en tu máquina.
+> aparece en ella y conviene comprobarla en tu máquina. Dentro de Codex no se usa `--target`
+> (ya estás en Codex): la skill optimiza para el modelo de esa sesión.
 
 ## Ayuda de uso
 
@@ -59,12 +73,16 @@ simbólico en lugar de copiar).
 $imk-prompt <petición>                    # en Codex
 ```
 
-Con argumentos opcionales al principio (en Codex se escriben igual):
+Con argumentos opcionales al principio:
 
 | Argumento | Qué hace | Por defecto |
 |---|---|---|
-| `--target claude\|codex` | Quién ejecuta el prompt y qué guía se aplica | el proveedor del modelo de la sesión |
+| `--target codex` | Optimiza para Codex y lo ejecuta con el **plugin de Codex instalado en Claude Code** | desactivado: optimiza para el modelo de la sesión y lo ejecuta ahí |
 | `--run` | Lo lanza sin pedir confirmación | desactivado: lo enseña y pregunta |
+
+`--target` tiene **un único valor, `codex`**, y solo existe para usar el plugin de Codex desde
+Claude Code. No hay `--target claude`: Claude es lo que se usa por defecto, sin argumento. Solo
+funciona en Claude Code y **exige tener el plugin de Codex instalado** (ver Instalación).
 
 ### Ejemplos
 
@@ -78,7 +96,8 @@ Con argumentos opcionales al principio (en Codex se escriben igual):
 
 Antes de ejecutar nada, la skill muestra:
 
-- **Optimizado para**: proveedor, modelo y versión exactos (y si se detectó o lo fijaste tú).
+- **Optimizado para**: proveedor, modelo y versión exactos (el de la sesión o, con `--target
+  codex`, el que use el plugin de Codex).
 - **Lo ejecutará**: esta sesión, o el plugin de Codex con su modelo y esfuerzo.
 - **Optimizado por**: el modelo de la sesión.
 - **Guía aplicada**: qué referencia se usó y de qué fecha es.
@@ -92,13 +111,11 @@ Después te pregunta: lo lanza tal cual, lo ajustas tú o usa tu versión origin
 - **Peticiones triviales** (una pregunta corta, un saludo): no las optimiza y las ejecuta tal cual.
 - **No añade requisitos** que no pediste; lo que completa lo lista como suposición.
 - **Mismo idioma** que tu petición; la skill está escrita en inglés (menos tokens).
-- **`--target codex` desde Claude Code**: optimiza para Codex y, al aprobar, **delega la
-  ejecución en el plugin de Codex**, que usa su modelo por defecto. La skill lo lee de
-  `~/.codex/config.toml` y lo muestra en la cabecera. El prompt sale autocontenido (Codex no ve
-  la conversación) y, si la tarea es de solo lectura, se lo indica al plugin, que escribe por
-  defecto. Requiere el plugin `codex` instalado y listo (`/codex:setup`).
-- **Otras combinaciones** (por ejemplo `--target claude` desde Codex): no puede delegar, así que
-  te enseña el prompt para pegarlo en la otra herramienta.
+- **`--target codex`**: optimiza para Codex y, al aprobar, **delega la ejecución en el plugin de
+  Codex**, que usa su modelo por defecto. La skill lo lee de `~/.codex/config.toml` y lo muestra
+  en la cabecera. El prompt sale autocontenido (Codex no ve la conversación) y, si la tarea es de
+  solo lectura, se lo indica al plugin, que escribe por defecto. Si el plugin no está instalado
+  o listo, no optimiza: te avisa para que lo instales (`/codex:setup`).
 
 ### Si algo no va
 
@@ -106,13 +123,14 @@ Después te pregunta: lo lanza tal cual, lo ajustas tú o usa tu versión origin
 |---|---|
 | No aparece `/imk-prompt` | Ejecuta `/reload-plugins`; comprueba que el plugin está instalado con `/plugin`. |
 | No aparece `$imk-prompt` en Codex | Revisa que la carpeta está en `~/.agents/skills/imk-prompt` con su `SKILL.md`; reinicia Codex. |
-| La cabecera dice "versión no determinada" | El modelo no sabe cuál es; usó la guía general. Fija `--target` o revisa la guía del proveedor. |
-| `--target codex` no ejecuta, solo enseña el prompt | El plugin de Codex no está instalado o listo: `/codex:setup`. |
+| La cabecera dice "versión no determinada" | El modelo no sabe cuál es; usó la guía general. Revisa la guía del proveedor. |
+| `--target codex` avisa de que falta el plugin | Instala el plugin de Codex en Claude Code y ejecuta `/codex:setup` (ver Instalación). |
+| `--target claude` da error | No existe: Claude es el valor por defecto, usa la skill sin `--target`. |
 | Recomienda revisar la página del proveedor | La guía interna tiene más de ~3 meses o el modelo es más nuevo que ella; ver Referencias. |
 
 ## Cómo funciona
 
-1. Detecta el modelo destino (o usa `--target`).
+1. Detecta el modelo destino: el de la sesión o, con `--target codex`, el del plugin de Codex.
 2. Carga solo la referencia de ese proveedor (`references/claude.md` o `references/codex.md`).
 3. Si la petición es trivial, no la optimiza y la ejecuta tal cual.
 4. Optimiza con el modelo de la sesión (contexto completo).
@@ -140,9 +158,9 @@ skills/imk-prompt/
 
 ## Limitaciones
 
-- La delegación en Codex solo funciona desde Claude Code con el plugin `codex` instalado.
-- La autodetección del modelo se basa en lo que el propio modelo sabe de sí mismo; si dudas,
-  fija `--target`.
+- `--target codex` solo funciona desde Claude Code con el plugin `codex` instalado.
+- El modelo y la versión de la sesión los da el propio modelo; si no los sabe, la cabecera dice
+  "versión no determinada" y se usa la guía general.
 - En Codex, la skill no se ha probado todavía: `SKILL.md` lleva campos propios de Claude Code
   (`argument-hint`, `disable-model-invocation`) y la documentación de Codex no dice si los
   ignora.
