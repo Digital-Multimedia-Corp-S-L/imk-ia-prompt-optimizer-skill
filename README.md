@@ -20,7 +20,21 @@ Claude y Codex/GPT como destino; Copilot y otros quedan para más adelante.
 /reload-plugins
 ```
 
-Comprueba que está cargada escribiendo `/imk-prompt`. Para actualizar: `/plugin update`.
+Comprueba que está cargada escribiendo `/imk-prompt`.
+
+**Para actualizar**: `/imk-prompt --update` (ver [Actualizar con `--update`](#actualizar-con---update)).
+Si tienes una versión anterior a la 0.1.5, que aún no incluye `--update`, actualiza esa primera
+vez a mano:
+
+```
+/plugin marketplace update imk-ia-prompt-optimizer
+/plugin update imk-ia-prompt-optimizer@imk-ia-prompt-optimizer
+/reload-plugins
+```
+
+Claude Code decide si hay algo nuevo comparando el `version` del `plugin.json`, así que cada
+cambio publicado sube la versión. Si tras `/reload-plugins` sigue saliendo la versión antigua,
+reinicia Claude Code.
 
 **Solo si vas a usar `--target codex`**: necesitas además el **plugin de Codex instalado en
 Claude Code** (y Codex con sesión iniciada en tu máquina). Sin él, `--target codex` no funciona.
@@ -58,8 +72,11 @@ New-Item -ItemType Directory -Force $HOME\.agents\skills | Out-Null
 Copy-Item -Recurse imk-ia-prompt-optimizer-skill\skills\imk-prompt $HOME\.agents\skills\
 ```
 
-Reinicia Codex si no la detecta, y comprueba con `/skills` o escribiendo `$imk-prompt`. Para
-actualizar: `git pull` y vuelve a copiar la carpeta (en Linux/macOS puedes usar un enlace
+Reinicia Codex si no la detecta, y comprueba con `/skills` o escribiendo `$imk-prompt`.
+
+**Para actualizar**: `$imk-prompt --update` (ver [Actualizar con `--update`](#actualizar-con---update)).
+Si tienes una versión anterior a la 0.1.5, actualiza esa primera vez a mano: `git pull` en tu
+clon y vuelve a copiar la carpeta `skills/imk-prompt` (en Linux/macOS puedes usar un enlace
 simbólico en lugar de copiar).
 
 > La instalación en Codex sigue su documentación oficial para skills; la ruta en Windows no
@@ -71,6 +88,8 @@ simbólico en lugar de copiar).
 ```
 /imk-prompt <petición>                    # en Claude Code
 $imk-prompt <petición>                    # en Codex
+
+/imk-prompt --update                      # actualizar la skill (en Codex: $imk-prompt --update)
 ```
 
 Con argumentos opcionales al principio:
