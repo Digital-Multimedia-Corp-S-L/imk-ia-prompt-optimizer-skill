@@ -103,7 +103,9 @@ Antes de ejecutar nada, la skill muestra:
 - **Guía aplicada**: qué referencia se usó y de qué fecha es.
 - El **prompt**, los **ajustes para ese modelo**, los **cambios clave** y las **suposiciones**.
 
-Después te pregunta: lo lanza tal cual, lo ajustas tú o usa tu versión original.
+Después te ofrece tres opciones con **«Lanzarlo así» preseleccionada**: basta con pulsar Intro.
+Las otras dos son «Ajustarlo» (me dices qué cambiar) y «Usar mi versión original». En Codex, que
+no tiene ese selector, te lo pregunta en texto y respondes «sí» para aceptar.
 
 ### Cómo se comporta
 

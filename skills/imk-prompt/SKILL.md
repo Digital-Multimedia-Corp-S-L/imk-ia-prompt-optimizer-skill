@@ -55,7 +55,16 @@ makes no sense (you already are Codex): ignore it and say so.
    it. Optimizing short requests adds friction, not quality.
 4. **Optimize it yourself** following the rules below, with the conversation context you
    already have.
-5. **Present** the result (format below). Unless `--run`, stop and wait for approval or edits.
+5. **Present** the result (format below). Unless `--run`, end by asking for confirmation with the
+   `AskUserQuestion` tool, so the user only has to press Enter to accept the default:
+   - One question, in the user's language, e.g. "¿Lo lanzo así?", header "Lanzar".
+   - Options, in this order: **"Lanzarlo así (Recommended)"** (first, so Enter selects it),
+     **"Ajustarlo"** (the user then says what to change), **"Usar mi versión original"**.
+   - Then act on the answer: run the optimized prompt, revise it and ask again, or run the
+     user's original request.
+
+   If `AskUserQuestion` is not available (for example in Codex), ask the same thing in plain
+   text, make "lanzarlo así" the suggested default, and tell the user to answer "sí" to accept.
 6. **Run** the approved prompt:
    - No `--target` → run it in this session as if the user had typed it.
    - `--target codex` → delegate with the Agent tool, `subagent_type: "codex:codex-rescue"`.
@@ -107,9 +116,10 @@ makes no sense (you already are Codex): ignore it and say so.
 
 **Suposiciones**
 - <only if any; otherwise omit the section>
-
-¿Lo lanzo así, lo ajustas o prefieres tu versión original?
 ```
+
+Do not write the confirmation question in the text: it goes in the `AskUserQuestion` call (or,
+without that tool, as the last line: "¿Lo lanzo así? (sí / ajustar / usar mi original)").
 
 Rules for the header:
 - Always state the exact model and version. If you could not determine the version, write
