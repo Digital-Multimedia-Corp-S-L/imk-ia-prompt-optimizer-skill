@@ -1,7 +1,7 @@
 ---
 name: imk-prompt
 description: Rewrites a rough request into an optimized prompt for the AI model that will run it (Claude, or Codex/GPT through the Codex plugin), following that vendor's official prompting guidance, shows it for approval, then runs it. Use when the user invokes /imk-prompt or asks to "optimize this prompt" before executing it.
-argument-hint: "[--target codex] [--run] <request>"
+argument-hint: "[--update | [--target codex] [--run] <request>]"
 disable-model-invocation: true
 ---
 
@@ -22,6 +22,9 @@ Parse these from the start of the arguments; everything else is the **raw reques
 |---|---|---|
 | `--target codex` | Optimize for Codex and run it through the Codex plugin installed in Claude Code | off: optimize for the session model and run it here |
 | `--run` | Run the optimized prompt right away, no confirmation | off: show it and ask |
+| `--update` | Update this skill to the latest published version (no request, no optimizing) | off |
+
+If `--update` is present, ignore the rest and do only **Updating** below.
 
 `--target` has **one value only: `codex`**, and exists only to use the Codex plugin from Claude
 Code. There is no `--target claude`: Claude is simply the default. If the user passes any other
@@ -31,6 +34,37 @@ value, say that only `--target codex` exists and ask what they meant.
 checked with `/codex:setup`). When set, after approval the execution is **delegated to that
 plugin**, which runs Codex with its own default model. In a Codex session, `--target codex`
 makes no sense (you already are Codex): ignore it and say so.
+
+## Updating (`--update`)
+
+Updates this skill from its GitHub repo (private: it needs the user's git access). Do not
+optimize anything. Decide the case from where this skill is installed (its base directory):
+
+**Claude Code, installed as a plugin** (base directory under `~/.claude/plugins/cache/`):
+1. List the version folders in
+   `~/.claude/plugins/cache/imk-ia-prompt-optimizer/imk-ia-prompt-optimizer/` (the "before").
+2. With the Bash tool, run in order:
+   `claude plugin marketplace update imk-ia-prompt-optimizer` and then
+   `claude plugin update imk-ia-prompt-optimizer@imk-ia-prompt-optimizer`.
+3. List the folders again. Report "ya estaba en la última versión (X)" or "actualizada de X a Y".
+4. You cannot run `/reload-plugins` (it is a built-in command, not a tool). Tell the user to
+   type it, and to restart Claude Code if the old version still shows, because `claude plugin
+   update` says a restart is required to apply.
+
+**Claude Code, loaded with `--plugin-dir`** (base directory is the user's repo checkout): there is
+nothing to update; say that edits there apply with `/reload-plugins` and suggest `git pull`.
+
+**Codex** (no `claude` command; the skill is a copied folder under `~/.agents/skills/`):
+1. `tmp=$(mktemp -d)` and `git clone --depth 1
+   https://github.com/Digital-Multimedia-Corp-S-L/imk-ia-prompt-optimizer-skill "$tmp/repo"`.
+   If the clone fails, report the git error (likely missing access) and stop.
+2. Read the new version from `"$tmp/repo/.claude-plugin/plugin.json"`.
+3. Replace the contents of this skill's base directory with `"$tmp/repo/skills/imk-prompt/"`,
+   touching nothing outside that directory. Remove `"$tmp"` afterwards.
+4. Report the version now installed (Codex keeps no previous version, so do not claim a
+   comparison) and tell the user to restart Codex if the skill does not change.
+
+In every case answer in the user's language, briefly, and never use `--run` semantics here.
 
 ## Procedure
 

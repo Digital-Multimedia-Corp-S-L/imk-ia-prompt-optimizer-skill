@@ -79,6 +79,7 @@ Con argumentos opcionales al principio:
 |---|---|---|
 | `--target codex` | Optimiza para Codex y lo ejecuta con el **plugin de Codex instalado en Claude Code** | desactivado: optimiza para el modelo de la sesión y lo ejecuta ahí |
 | `--run` | Lo lanza sin pedir confirmación | desactivado: lo enseña y pregunta |
+| `--update` | Actualiza la skill a la última versión publicada (sin petición) | desactivado |
 
 `--target` tiene **un único valor, `codex`**, y solo existe para usar el plugin de Codex desde
 Claude Code. No hay `--target claude`: Claude es lo que se usa por defecto, sin argumento. Solo
@@ -118,6 +119,21 @@ no tiene ese selector, te lo pregunta en texto y respondes «sí» para aceptar.
   en la cabecera. El prompt sale autocontenido (Codex no ve la conversación) y, si la tarea es de
   solo lectura, se lo indica al plugin, que escribe por defecto. Si el plugin no está instalado
   o listo, no optimiza: te avisa para que lo instales (`/codex:setup`).
+
+### Actualizar con `--update`
+
+```
+/imk-prompt --update          # en Claude Code
+$imk-prompt --update          # en Codex
+```
+
+- **Claude Code**: ejecuta `claude plugin marketplace update` y `claude plugin update` y te dice
+  si pasó de una versión a otra. Una skill no puede lanzar `/reload-plugins`, así que **ese
+  último paso lo escribes tú** (y reinicia Claude Code si sigue saliendo la versión antigua).
+  Si cargaste el plugin con `--plugin-dir`, no hay nada que actualizar: haz `git pull`.
+- **Codex**: clona el repo en una carpeta temporal y sustituye la carpeta de la skill por la
+  nueva. Reinicia Codex si no ves el cambio.
+- En ambos casos hace falta acceso de git al repo privado.
 
 ### Si algo no va
 
