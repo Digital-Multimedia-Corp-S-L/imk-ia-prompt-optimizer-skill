@@ -25,7 +25,6 @@ Para actualizar: `/plugin update`. Sin plugins, también sirve copiar
 ```
 /imk-prompt <petición>
 /imk-prompt --target codex <petición>
-/imk-prompt --model opus <petición>
 /imk-prompt --run <petición>
 ```
 
@@ -34,16 +33,24 @@ Si hay otra skill llamada `imk-prompt`, usa el nombre completo:
 
 | Argumento | Qué hace | Por defecto |
 |---|---|---|
-| `--target claude\|codex` | Guía del proveedor que se aplica | se detecta por el modelo de la sesión |
-| `--model <alias>` | Modelo que **optimiza** (p. ej. `opus`) | el modelo de la sesión |
+| `--target claude\|codex` | Quién ejecuta el prompt y qué guía se aplica | el proveedor del modelo de la sesión |
 | `--run` | Lanza el prompt sin pedir confirmación | desactivado: lo enseña y pregunta |
+
+**Quién optimiza** es siempre el modelo de la sesión, con todo el contexto de la conversación.
+
+**`--target codex`** optimiza el prompt para Codex y, al aprobarlo, **delega la ejecución en el
+plugin de Codex** (la otra IA instalada), que usa su modelo por defecto. La skill lee ese modelo
+y su esfuerzo de `~/.codex/config.toml` y los muestra en la cabecera. El prompt de Codex sale
+autocontenido, porque Codex no ve la conversación. Requiere el plugin `codex` instalado y listo
+(`/codex:setup` lo comprueba); si no, te enseña el prompt para que lo pegues tú.
 
 ## Qué te enseña
 
 Antes de ejecutar nada, la skill muestra:
 
 - **Optimizado para**: proveedor, modelo y versión exactos (y si se detectó o lo fijaste tú).
-- **Optimizado por**: el modelo que hizo la optimización.
+- **Lo ejecutará**: esta sesión, o el plugin de Codex con su modelo y esfuerzo.
+- **Optimizado por**: el modelo de la sesión.
 - **Guía aplicada**: qué referencia se usó y de qué fecha es.
 - El **prompt**, los **ajustes específicos del modelo**, los **cambios clave** y las
   **suposiciones** que ha tenido que hacer.
@@ -53,9 +60,9 @@ Antes de ejecutar nada, la skill muestra:
 1. Detecta el modelo destino (o usa `--target`).
 2. Carga solo la referencia de ese proveedor (`references/claude.md` o `references/codex.md`).
 3. Si la petición es trivial, no la optimiza y la ejecuta tal cual.
-4. Optimiza con el modelo de la sesión (contexto completo) o, con `--model`, con un agente de
-   otro modelo al que se le pasa un **resumen** del contexto relevante (no ve la conversación).
+4. Optimiza con el modelo de la sesión (contexto completo).
 5. Te enseña el resultado y espera tu OK, salvo con `--run`.
+6. Lo ejecuta en la sesión, o con `--target codex` lo delega en el plugin de Codex.
 
 La skill está escrita en inglés (menos tokens y alineada con las fuentes). El prompt
 optimizado y las explicaciones salen en el idioma de tu petición.
@@ -80,7 +87,9 @@ skills/imk-prompt/
 
 ## Limitaciones
 
-- `--model` depende de la herramienta de agentes de Claude Code; en otras herramientas se usa
-  el modelo de la sesión.
+- La delegación en Codex solo funciona desde Claude Code con el plugin `codex` instalado; en
+  cualquier otra combinación la skill muestra el prompt para pegarlo en la herramienta destino.
+- El plugin de Codex escribe por defecto; si la tarea es de solo lectura (revisión,
+  diagnóstico), la skill lo indica en el texto que le envía.
 - La autodetección del modelo se basa en lo que el propio modelo sabe de sí mismo; si dudas,
   fija `--target`.

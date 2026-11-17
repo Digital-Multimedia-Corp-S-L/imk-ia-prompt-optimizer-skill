@@ -1,7 +1,7 @@
 ---
 name: imk-prompt
-description: Rewrites a rough request into an optimized prompt for the AI model that will run it (Claude or Codex/GPT), following that vendor's official prompting guidance, shows it for approval, then runs it. Use when the user invokes /imk-prompt or asks to "optimize this prompt" before executing it.
-argument-hint: "[--target claude|codex] [--model <optimizer-model>] [--run] <request>"
+description: Rewrites a rough request into an optimized prompt for the AI model that will run it (Claude, or Codex/GPT through the Codex plugin), following that vendor's official prompting guidance, shows it for approval, then runs it. Use when the user invokes /imk-prompt or asks to "optimize this prompt" before executing it.
+argument-hint: "[--target claude|codex] [--run] <request>"
 disable-model-invocation: true
 ---
 
@@ -11,39 +11,52 @@ Turn the user's rough request into a prompt tuned for the model that will execut
 and only then run it. Never run the original request before the user has seen the optimized one
 (unless `--run`).
 
+The **optimizer is always the current session model**, with the full conversation context. What
+changes with `--target` is who *executes* the prompt and whose guidance it follows.
+
 ## Arguments
 
 Parse these from the start of the arguments; everything else is the **raw request**.
 
 | Argument | Meaning | Default |
 |---|---|---|
-| `--target claude\|codex` | Vendor guidance to apply | auto-detect (below) |
-| `--model <alias>` | Model that does the *optimizing* (e.g. `opus`) | the current session model |
+| `--target claude\|codex` | Who executes the prompt and which vendor guidance applies | the session's own vendor |
 | `--run` | Run the optimized prompt right away, no confirmation | off: show it and ask |
+
+- `claude`: optimize for the session model and run it in this session.
+- `codex`: optimize for Codex and, after approval, **delegate the execution to the Codex plugin**
+  (the other AI installed alongside), which runs its own default model.
 
 ## Procedure
 
-1. **Detect the target.** Unless `--target` is given, decide from your own identity: Claude
-   models (running in Claude Code or any Claude-based tool) → `claude`; OpenAI/GPT/Codex models
-   → `codex`. Also note the exact target model (for example "Sonnet 5.5") when you know it.
-   If you are not sure, ask the user in one short question. Copilot and others are not
+1. **Detect the target.** Unless `--target` is given, use your own vendor: a Claude model →
+   `claude`; an OpenAI/GPT/Codex model → `codex`. Note the exact target model and version:
+   - `claude`: your own model and version (for example "Sonnet 5.5").
+   - `codex`: the model the Codex plugin will run. Read `model` and `model_reasoning_effort`
+     from `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`). If it cannot be read, write
+     "modelo por defecto del plugin (no determinado)" and use the general guidance only.
+
+   If you are not sure of the target, ask one short question. Copilot and others are not
    supported yet: say so and fall back to the general principles in `references/claude.md`.
 2. **Load only that reference**: `references/claude.md` or `references/codex.md`, read with
    the file tool relative to this skill's folder. Do not load the other one.
 3. **Decide whether to optimize at all.** If the request is a one-line question, a greeting
    or a trivial command, say "no hace falta optimizarlo" in the user's language and just run
    it. Optimizing short requests adds friction, not quality.
-4. **Optimize** following the rules below, either:
-   - **Same model** (no `--model`, or it equals the session model): do it yourself, with the
-     conversation context you already have.
-   - **Different model** (`--model`): spawn one general-purpose subagent with that `model`.
-     It cannot see this conversation, so brief it fully: the raw request, the target vendor and
-     model, the full text of the loaded reference, and a short summary of only the context
-     that matters (files, conventions, constraints, what was already decided). Tell it to
-     return the optimized prompt plus a list of assumptions, nothing else. If your environment
-     has no subagent tool with a model option, say so and optimize with the session model.
+4. **Optimize it yourself** following the rules below, with the conversation context you
+   already have.
 5. **Present** the result (format below). Unless `--run`, stop and wait for approval or edits.
-6. **Run** the approved prompt as if the user had typed it, in the session model.
+6. **Run** the approved prompt:
+   - Target equal to your own vendor → run it in this session as if the user had typed it.
+   - Target `codex` while you are Claude → delegate with the Agent tool, `subagent_type:
+     "codex:codex-rescue"`. Pass the optimized prompt **verbatim** as the task. Do not add
+     `--model` or `--effort` (the plugin uses its defaults). If the task is read-only (review,
+     diagnosis, research), say so in the forwarded text, because the plugin writes by default.
+     When it returns, show Codex's output as it came and state that it was Codex. If the Codex
+     plugin is not installed or not ready, say so (`/codex:setup` checks it) and show the
+     prompt for the user to paste into Codex instead.
+   - Any other combination (for example you are Codex and the target is `claude`) → you cannot
+     delegate: show the prompt and say it is to be pasted into the target tool.
 
 ## Optimization rules
 
@@ -56,6 +69,8 @@ Parse these from the start of the arguments; everything else is the **raw reques
 - **Ground it in the project.** Use real file names, commands and conventions you already
   know from the conversation or the repo instructions; never invent them. If something
   critical is unknown, say so under *Assumptions* or ask one question instead of guessing.
+- **Self-contained for Codex.** Codex does not see this conversation, so a `codex` prompt must
+  carry the context it needs (files, conventions, constraints, what is already decided).
 - **Write for the target.** Apply the loaded reference: its structure, tone, autonomy and
   verification conventions, and the per-model adjustments for the exact target model.
 - **Tell it what to do, not what to avoid**; give the reason behind each constraint; state
@@ -70,8 +85,9 @@ Parse these from the start of the arguments; everything else is the **raw reques
 **Prompt optimizado**
 
 - Optimizado para: <vendor> · <exact model and version, e.g. "Claude Sonnet 5.5"> (<detectado | --target>)
-- Optimizado por: <model that did the optimizing> (<sesión | --model>)
-- Guía aplicada: <reference file> (instantánea de <date in the file>) + <model page, only if fetched>
+- Lo ejecutará: <this session | Codex plugin · model and effort>
+- Optimizado por: <session model>
+- Guía aplicada: <reference file> (instantánea de <date in the file>)
 
 <the prompt, in one fenced block>
 
@@ -91,10 +107,8 @@ Rules for the header:
 - Always state the exact model and version. If you could not determine the version, write
   "versión no determinada" and say the general guidance was used instead of model-specific
   adjustments.
-- If the optimizer model differs from the target, say so plainly; the user may have chosen it
-  on purpose.
-- If the reference snapshot is old (more than about three months) or a newer model than the
-  reference covers is the target, add one line recommending to check the vendor page.
+- If the reference snapshot is old (more than about three months), or the target model is newer
+  than the reference covers, add one line recommending to check the vendor page.
 
 Translate the headings to the user's language. With `--run`, print the header and the prompt
 briefly and proceed to run it without asking.
