@@ -37,7 +37,7 @@ makes no sense (you already are Codex): ignore it and say so.
 
 ## Updating (`--update`)
 
-Updates this skill from its GitHub repo (private: it needs the user's git access). Do not
+Updates this skill from its public GitHub repo (it needs `git` and network access). Do not
 optimize anything. Decide the case from where this skill is installed (its base directory):
 
 **Claude Code, installed as a plugin** (base directory under `~/.claude/plugins/cache/`):
@@ -60,7 +60,7 @@ nothing to update; say that edits there apply with `/reload-plugins` and suggest
 **Codex** (no `claude` command; the skill is a copied folder under `~/.agents/skills/`):
 1. `tmp=$(mktemp -d)` and `git clone --depth 1
    https://github.com/Digital-Multimedia-Corp-S-L/imk-ia-prompt-optimizer-skill "$tmp/repo"`.
-   If the clone fails, report the git error (likely missing access) and stop.
+   If the clone fails, report the git error (likely no network or `git` missing) and stop.
 2. Read the new version from `"$tmp/repo/.claude-plugin/plugin.json"`.
 3. Compare with `diff -rq "$tmp/repo/skills/imk-prompt" <this skill's base directory>`. If there
    are no differences, remove `"$tmp"` and output exactly

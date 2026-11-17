@@ -7,8 +7,9 @@ versión para los que está optimizado) y, solo cuando lo apruebas, lo lanza.
 Funciona en **Claude Code** (empaquetada como plugin) y en **Codex** (como skill). Soporta
 Claude y Codex/GPT como destino; Copilot y otros quedan para más adelante.
 
-> Repo privado de la organización: hace falta acceso de lectura a `Digital-Multimedia-Corp-S-L`
-> y credenciales de git en tu máquina (`gh auth login` o clave SSH).
+> Repo público de la organización `Digital-Multimedia-Corp-S-L`: para instalarla y actualizarla
+> no hace falta ninguna credencial. Solo los miembros con permiso de escritura pueden subir
+> cambios.
 
 ## Instalación
 
@@ -160,7 +161,8 @@ Se ha actualizado imk-ia-prompt-optimizer-skill a la versión vX.Y.Z
 - **Codex**: clona el repo en una carpeta temporal, compara con la carpeta de la skill y, si hay
   diferencias, la sustituye por la nueva (cualquier cambio local en esa carpeta se pierde).
   Reinicia Codex si no ves el cambio.
-- En ambos casos hace falta acceso de git al repo privado.
+- En ambos casos hace falta `git` instalado y conexión a GitHub; el repo es público, no se
+  piden credenciales.
 
 ### Si algo no va
 
