@@ -1,0 +1,13 @@
+{
+  "name": "imk-ia-prompt-optimizer",
+  "owner": {
+    "name": "Digital Multimedia Corp S.L."
+  },
+  "plugins": [
+    {
+      "name": "imk-ia-prompt-optimizer",
+      "source": "./",
+      "description": "Skill /imk-prompt: optimiza una petición para Claude o Codex según la guía oficial de cada proveedor."
+    }
+  ]
+}

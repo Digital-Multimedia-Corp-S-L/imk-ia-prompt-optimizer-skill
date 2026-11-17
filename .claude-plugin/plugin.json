@@ -1,0 +1,9 @@
+{
+  "name": "imk-ia-prompt-optimizer",
+  "description": "Optimiza una petición en bruto para el modelo que la va a ejecutar (Claude o Codex/GPT) siguiendo la guía oficial de cada proveedor, la muestra para aprobarla y la lanza.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Digital Multimedia Corp S.L."
+  },
+  "repository": "https://github.com/Digital-Multimedia-Corp-S-L/imk-ia-prompt-optimizer-skill"
+}
