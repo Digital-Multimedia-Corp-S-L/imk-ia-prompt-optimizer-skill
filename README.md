@@ -127,12 +127,20 @@ no tiene ese selector, te lo pregunta en texto y respondes «sí» para aceptar.
 $imk-prompt --update          # en Codex
 ```
 
-- **Claude Code**: ejecuta `claude plugin marketplace update` y `claude plugin update` y te dice
-  si pasó de una versión a otra. Una skill no puede lanzar `/reload-plugins`, así que **ese
+Al terminar, la skill imprime siempre uno de estos dos mensajes:
+
+```
+No hay actualizaciones de imk-ia-prompt-optimizer-skill
+Se ha actualizado imk-ia-prompt-optimizer-skill a la versión vX.Y.Z
+```
+
+- **Claude Code**: ejecuta `claude plugin marketplace update` y `claude plugin update` y compara
+  las versiones instaladas antes y después. Una skill no puede lanzar `/reload-plugins`, así que **ese
   último paso lo escribes tú** (y reinicia Claude Code si sigue saliendo la versión antigua).
   Si cargaste el plugin con `--plugin-dir`, no hay nada que actualizar: haz `git pull`.
-- **Codex**: clona el repo en una carpeta temporal y sustituye la carpeta de la skill por la
-  nueva. Reinicia Codex si no ves el cambio.
+- **Codex**: clona el repo en una carpeta temporal, compara con la carpeta de la skill y, si hay
+  diferencias, la sustituye por la nueva (cualquier cambio local en esa carpeta se pierde).
+  Reinicia Codex si no ves el cambio.
 - En ambos casos hace falta acceso de git al repo privado.
 
 ### Si algo no va

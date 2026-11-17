@@ -46,10 +46,13 @@ optimize anything. Decide the case from where this skill is installed (its base 
 2. With the Bash tool, run in order:
    `claude plugin marketplace update imk-ia-prompt-optimizer` and then
    `claude plugin update imk-ia-prompt-optimizer@imk-ia-prompt-optimizer`.
-3. List the folders again. Report "ya estaba en la última versión (X)" or "actualizada de X a Y".
-4. You cannot run `/reload-plugins` (it is a built-in command, not a tool). Tell the user to
-   type it, and to restart Claude Code if the old version still shows, because `claude plugin
-   update` says a restart is required to apply.
+3. List the folders again. If no new version folder appeared, output exactly
+   `No hay actualizaciones de imk-ia-prompt-optimizer-skill`. If one appeared, output exactly
+   `Se ha actualizado imk-ia-prompt-optimizer-skill a la versión vX.Y.Z` (X.Y.Z is the new folder's
+   name).
+4. Only after an update: you cannot run `/reload-plugins` (it is a built-in command, not a
+   tool). Tell the user to type it, and to restart Claude Code if the old version still shows,
+   because `claude plugin update` says a restart is required to apply.
 
 **Claude Code, loaded with `--plugin-dir`** (base directory is the user's repo checkout): there is
 nothing to update; say that edits there apply with `/reload-plugins` and suggest `git pull`.
@@ -59,12 +62,18 @@ nothing to update; say that edits there apply with `/reload-plugins` and suggest
    https://github.com/Digital-Multimedia-Corp-S-L/imk-ia-prompt-optimizer-skill "$tmp/repo"`.
    If the clone fails, report the git error (likely missing access) and stop.
 2. Read the new version from `"$tmp/repo/.claude-plugin/plugin.json"`.
-3. Replace the contents of this skill's base directory with `"$tmp/repo/skills/imk-prompt/"`,
-   touching nothing outside that directory. Remove `"$tmp"` afterwards.
-4. Report the version now installed (Codex keeps no previous version, so do not claim a
-   comparison) and tell the user to restart Codex if the skill does not change.
+3. Compare with `diff -rq "$tmp/repo/skills/imk-prompt" <this skill's base directory>`. If there
+   are no differences, remove `"$tmp"` and output exactly
+   `No hay actualizaciones de imk-ia-prompt-optimizer-skill`; stop.
+4. Otherwise replace the contents of this skill's base directory with
+   `"$tmp/repo/skills/imk-prompt/"`, touching nothing outside that directory, and remove
+   `"$tmp"`. Output exactly
+   `Se ha actualizado imk-ia-prompt-optimizer-skill a la versión vX.Y.Z` and tell the user to
+   restart Codex if the skill does not change.
 
-In every case answer in the user's language, briefly, and never use `--run` semantics here.
+The two messages above are fixed text: print them exactly, without translating or embellishing
+them. Only the follow-up reminders (reload / restart) and error reports are free text, brief and
+in the user's language.
 
 ## Procedure
 
