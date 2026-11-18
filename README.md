@@ -7,7 +7,7 @@ versión para los que está optimizado) y, solo cuando lo apruebas, lo lanza.
 Funciona en **Claude Code** (empaquetada como plugin) y en **Codex** (como skill). Soporta
 Claude y Codex/GPT como destino; Copilot y otros quedan para más adelante.
 
-> Repo público de la organización `Digital-Multimedia-Corp-S-L`: para instalarla y actualizarla
+> Licencia MIT. Repo público de la organización `Digital-Multimedia-Corp-S-L`: para instalarla y actualizarla
 > no hace falta ninguna credencial. Solo los miembros con permiso de escritura pueden subir
 > cambios.
 
