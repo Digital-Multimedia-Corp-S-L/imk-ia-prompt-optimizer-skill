@@ -156,7 +156,8 @@ Se ha actualizado imk-ia-prompt-optimizer-skill a la versión vX.Y.Z
 
 - **Claude Code**: ejecuta `claude plugin marketplace update` y `claude plugin update` y compara
   las versiones instaladas antes y después. Una skill no puede lanzar `/reload-plugins`, así que **ese
-  último paso lo escribes tú** (y reinicia Claude Code si sigue saliendo la versión antigua).
+  último paso lo escribes tú**; tras actualizar, imprime siempre `Escribe /reload-plugins para
+  cargarla (si sigue la versión antigua, reinicia Claude Code)`.
   Si cargaste el plugin con `--plugin-dir`, no hay nada que actualizar: haz `git pull`.
 - **Codex**: clona el repo en una carpeta temporal, compara con la carpeta de la skill y, si hay
   diferencias, la sustituye por la nueva (cualquier cambio local en esa carpeta se pierde).

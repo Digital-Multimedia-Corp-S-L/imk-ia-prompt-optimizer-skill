@@ -51,8 +51,8 @@ optimize anything. Decide the case from where this skill is installed (its base 
    `Se ha actualizado imk-ia-prompt-optimizer-skill a la versión vX.Y.Z` (X.Y.Z is the new folder's
    name).
 4. Only after an update: you cannot run `/reload-plugins` (it is a built-in command, not a
-   tool). Tell the user to type it, and to restart Claude Code if the old version still shows,
-   because `claude plugin update` says a restart is required to apply.
+   tool). On the line after the update message, output exactly
+   `Escribe /reload-plugins para cargarla (si sigue la versión antigua, reinicia Claude Code)`.
 
 **Claude Code, loaded with `--plugin-dir`** (base directory is the user's repo checkout): there is
 nothing to update; say that edits there apply with `/reload-plugins` and suggest `git pull`.
@@ -71,9 +71,9 @@ nothing to update; say that edits there apply with `/reload-plugins` and suggest
    `Se ha actualizado imk-ia-prompt-optimizer-skill a la versión vX.Y.Z` and tell the user to
    restart Codex if the skill does not change.
 
-The two messages above are fixed text: print them exactly, without translating or embellishing
-them. Only the follow-up reminders (reload / restart) and error reports are free text, brief and
-in the user's language.
+The messages above (the two results and the reload reminder) are fixed text: print them exactly,
+without translating or embellishing them. Only error reports and the Codex restart reminder are
+free text, brief and in the user's language.
 
 ## Procedure
 
