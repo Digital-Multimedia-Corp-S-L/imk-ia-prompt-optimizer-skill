@@ -1,7 +1,7 @@
 ---
 name: imk-prompt
 description: Rewrites a rough request into an optimized prompt for the AI model that will run it (Claude, or Codex/GPT through the Codex plugin), following that vendor's official prompting guidance, shows it for approval, then runs it. Use when the user invokes /imk-prompt or asks to "optimize this prompt" before executing it.
-argument-hint: "[--update | [--target codex] [--run] <request>]"
+argument-hint: "[--update | [--target codex] [--run] [--explain] <request>]"
 disable-model-invocation: true
 ---
 
@@ -22,6 +22,7 @@ Parse these from the start of the arguments; everything else is the **raw reques
 |---|---|---|
 | `--target codex` | Optimize for Codex and run it through the Codex plugin installed in Claude Code | off: optimize for the session model and run it here |
 | `--run` | Run the optimized prompt right away, no confirmation | off: show it and ask |
+| `--explain` | Also show the explanations: model-specific adjustments, key changes, assumptions and the guidance used | off: show only the prompt |
 | `--update` | Update this skill to the latest published version (no request, no optimizing) | off |
 
 If `--update` is present, ignore the rest and do only **Updating** below.
@@ -121,7 +122,8 @@ free text, brief and in the user's language.
 ## Optimization rules
 
 - **Preserve intent.** Do not add requirements, scope or deliverables the user did not ask
-  for. If you fill a gap, list it under *Assumptions* so the user can reject it.
+  for. If you fill a gap, list it under *Assumptions* (with `--explain`) so the user can reject
+  it; without `--explain` there is no such section, so ask instead of assuming.
 - **Proportionate.** The optimized prompt should be about as long as the task deserves. A
   small request becomes a clear paragraph, not a template with ten XML blocks.
 - **Same language as the request** for the prompt and for your notes; keep code, paths and
@@ -140,6 +142,22 @@ free text, brief and in the user's language.
   or project's instructions require.
 
 ## Output format
+
+**Default (without `--explain`): only the prompt.** Print one line with the target, then the
+prompt in one fenced block, and nothing else: no adjustments, no key changes, no assumptions, no
+commentary.
+
+```
+**Optimizado para:** <vendor> · <exact model and version> (<modelo de la sesión | --target codex>)
+
+<the prompt, in one fenced block>
+```
+
+Without the *Assumptions* section, do not fill gaps silently: if something critical is missing,
+ask one question before optimizing instead of guessing. The staleness line (see the header
+rules) is the only extra allowed, and only when it applies.
+
+**With `--explain`**: print the full report below.
 
 ```
 **Prompt optimizado**
@@ -171,5 +189,5 @@ Rules for the header:
 - If the reference snapshot is old (more than about three months), or the target model is newer
   than the reference covers, add one line recommending to check the vendor page.
 
-Translate the headings to the user's language. With `--run`, print the header and the prompt
+Translate the headings to the user's language. With `--run`, print the target line and the prompt
 briefly and proceed to run it without asking.

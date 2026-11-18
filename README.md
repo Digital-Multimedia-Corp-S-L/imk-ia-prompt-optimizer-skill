@@ -99,6 +99,7 @@ Con argumentos opcionales al principio:
 |---|---|---|
 | `--target codex` | Optimiza para Codex y lo ejecuta con el **plugin de Codex instalado en Claude Code** | desactivado: optimiza para el modelo de la sesión y lo ejecuta ahí |
 | `--run` | Lo lanza sin pedir confirmación | desactivado: lo enseña y pregunta |
+| `--explain` | Añade las explicaciones: ajustes para el modelo, cambios clave, suposiciones y guía aplicada | desactivado: solo enseña el prompt |
 | `--update` | Actualiza la skill a la última versión publicada (sin petición) | desactivado |
 
 `--target` tiene **un único valor, `codex`**, y solo existe para usar el plugin de Codex desde
@@ -111,18 +112,24 @@ funciona en Claude Code y **exige tener el plugin de Codex instalado** (ver Inst
 /imk-prompt arregla el test que falla en el módulo de usuarios
 /imk-prompt --target codex revisa el último commit
 /imk-prompt --run añade un botón de exportar al listado
+/imk-prompt --explain mejora la paginación del listado
 ```
 
 ### Qué verás
 
-Antes de ejecutar nada, la skill muestra:
+Antes de ejecutar nada, la skill muestra **solo el prompt**, con una línea encima que indica
+**para qué proveedor, modelo y versión** está optimizado (el de la sesión o, con `--target codex`,
+el que use el plugin de Codex). Sin explicaciones.
 
-- **Optimizado para**: proveedor, modelo y versión exactos (el de la sesión o, con `--target
-  codex`, el que use el plugin de Codex).
+Con `--explain` muestra además el informe completo:
+
 - **Lo ejecutará**: esta sesión, o el plugin de Codex con su modelo y esfuerzo.
 - **Optimizado por**: el modelo de la sesión.
 - **Guía aplicada**: qué referencia se usó y de qué fecha es.
-- El **prompt**, los **ajustes para ese modelo**, los **cambios clave** y las **suposiciones**.
+- Los **ajustes para ese modelo**, los **cambios clave** y las **suposiciones**.
+
+Sin `--explain` no hay sección de suposiciones: si falta algo crítico, la skill te hace una
+pregunta en lugar de suponerlo.
 
 Después te ofrece tres opciones con **«Lanzarlo así» preseleccionada**: basta con pulsar Intro.
 Las otras dos son «Ajustarlo» (me dices qué cambiar) y «Usar mi versión original». En Codex, que
